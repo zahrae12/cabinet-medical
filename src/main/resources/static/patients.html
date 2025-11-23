@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion Patients</title>
+</head>
+<body>
+<h2>Ajouter un patient</h2>
+Nom : <input id="nom"> <br>
+Age : <input id="age" type="number"> <br>
+Téléphone : <input id="tel"> <br>
+<button onclick="ajouter()">Ajouter</button>
+<p id="message" style="color:red;"></p>
+<hr>
+<h2>Liste des patients</h2>
+<button onclick="charger()">Charger la liste</button>
+<ul id="liste"></ul>
+
+<script>
+    const message = document.getElementById("message");
+
+    // ---- Ajouter un patient ----
+    function ajouter() {
+        const patient = {
+            nom: document.getElementById("nom").value,
+            age: parseInt(document.getElementById("age").value),
+            telephone: document.getElementById("tel").value
+        };
+
+        fetch('/api/patients', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(patient)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+                return response.json();
+            })
+            .then(() => {
+                message.style.color = "green";
+                message.textContent = "Patient ajouté avec succès !";
+                charger(); // Recharge la liste
+            })
+            .catch(err => {
+                message.style.color = "red";
+                message.textContent = "Erreur : " + err.message;
+            });
+    }
+
+    // ---- Lister les patients ----
+    function charger() {
+        fetch('/api/patients')
+            .then(r => r.json())
+            .then(data => {
+                const ul = document.getElementById("liste");
+                ul.innerHTML = '';
+                data.forEach(p => {
+                    const li = document.createElement('li');
+                    li.textContent = `${p.id} - ${p.nom} (${p.age} ans) - ${p.telephone}`;
+                    ul.appendChild(li);
+                });
+            });
+    }
+</script>
+</body>
+</html>
